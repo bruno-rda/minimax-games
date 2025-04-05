@@ -186,6 +186,7 @@ class Dominoes(Game):
         
         print()
     
+    
 class DominoesPlayer(Player):
     n_instances = 0
     def __init__(self, name=None):
@@ -200,6 +201,7 @@ class DominoesPlayer(Player):
         move = input('Select a tile [1-28]: ')
         assert move.lstrip('-').isdigit(), 'Only digits are allowed'
         return int(move)
+    
     
 class DominoesAI(Player):
     def __init__(
