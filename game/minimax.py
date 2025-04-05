@@ -146,8 +146,11 @@ def get_best_move(
 
 
 def get_cache_stats():
-    return minimax.count, minimax.hit, minimax.miss
-
+    return dict(
+        count=minimax.count,
+        hit=minimax.hit,
+        miss=minimax.miss
+    )
 
 def clear_cache():
     minimax.cache.clear()
