@@ -1,6 +1,6 @@
 import random
 from collections import deque
-from game import Game, Player, get_best_move
+from game import Game, Player, Solver
 
 ALL_DOMINOES = [
     (i, j)
@@ -16,17 +16,20 @@ DOMINO_INDEX = {
 class Dominoes(Game):
     def __init__(
         self, 
-        single: bool = False,
+        single_player: bool = False,
         tiles=None
     ):
-        super().__init__()
-        self.n_players = 2 if single else 4
-        self.symbols = [f'{x} - Team {x%2}' for x in range(self.n_players)]
+        self.n_players = 2 if single_player else 4
+
+        super().__init__(
+            symbols=[f'{x} - Team {x%2}' for x in range(self.n_players)],
+            max_score=120
+        )
 
         self.tiles = self.init_tiles(tiles)
         self.board = deque([])
         self.turn_state = []
-        self.n_pass = 0
+        self.occurences = [0]*7
 
 
     def init_tiles(self, tiles: list):
@@ -44,21 +47,112 @@ class Dominoes(Game):
         assert sum(len(tile) for tile in tiles) == 28, 'Invalid number of tiles'
 
         return tiles
+
+    def get_key(self):
+        return tuple(
+            [
+                frozenset(self.tiles[i])
+                for i in range(self.n_players)
+            ] + [
+                self.board[0][0],
+                self.board[-1][-1],
+                self.turn
+            ]
+        )
+
+    def is_closed_game(self):
+        if len(self.board) < 10:
+            return False
         
+        l, r = self.board[0][0], self.board[-1][-1]
+        return (
+            self.occurences[l] == 8 and 
+            self.occurences[r] == 8
+        )
+    
     def is_over(self) -> bool:
         return (
             (self.winner is not None) or 
-            (self.n_pass >= self.n_players)
+            (self.is_closed_game())
         )
     
     def compute_final_score(self) -> float:
         if self.winner is not None:
-            mult = -1 if self.winner else 1
-            score = self.scores[self.winner]
-            return mult * score
-
+            mult = 1 if self.winner == self.turn % 2 else -1
+            return mult * self.scores[self.winner]
         return 0
 
+    def get_upper_bound(self) -> float:
+        return self.scores[self.turn % 2]
+
+    def get_lower_bound(self) -> float:
+        return -self.scores[(self.turn + 1) % 2]
+
+    def evaluate_immediate_win(self) -> float | None:
+        legal_moves = self.legal_moves()
+        
+        # If you can only pass, then there is no immediate win
+        if legal_moves == [0]:
+            return None
+        
+        # If you can play your last tile, then you win
+        if len(legal_moves) == 1 and len(self.tiles[self.turn]) == 1:
+            return self.get_upper_bound()
+        
+        for move in legal_moves:
+            tile = ALL_DOMINOES[abs(move) - 1]
+            self.occurences[tile[0]] += 1
+            self.occurences[tile[1]] += 1
+
+            closed_game = self.is_closed_game()
+            self.occurences[tile[0]] -= 1
+            self.occurences[tile[1]] -= 1
+
+            # If game is not closed, then there is no immediate win
+            if not closed_game:
+                continue
+                
+            player = self.get_upper_bound()
+            opponent = self.get_lower_bound() + sum(tile)
+            diff = player + opponent
+            
+            # If you can close the game and have greater score, you win
+            if diff > 0:
+                return player
+            elif diff < 0:
+                return opponent
+            else:
+                return 0
+            
+        return None
+    
+    def evaluate_forced_loss(self):
+        next_idx = (self.turn + 1) % self.n_players
+        next_tiles = list(self.tiles[next_idx])
+        
+        # If opponent has more than 1 tile, then there is no forced loss
+        if len(next_tiles) > 1:
+            return None
+        
+        # Get the best tile to play assuming forced loss exists
+        legal_moves = self.legal_moves()
+        best_tile_sum = (
+            0 # If opponent can only pass, best sum is 0
+            if legal_moves == [0] else
+            max(sum(ALL_DOMINOES[abs(x) - 1]) for x in legal_moves)
+        )
+        
+        # Get edge tile numbers
+        l, r = self.board[0][0], self.board[-1][-1]
+
+        # If opponents last tile is compatible with both edge tiles, 
+        # then there is a forced loss, and we can return the score
+        if l in next_tiles[0] and r in next_tiles[0]:
+            return self.get_lower_bound() + best_tile_sum
+        
+        # If there is no forced loss, return None
+        return None
+    
     @property
     def scores(self) -> tuple[float, float]:
         return (
@@ -98,27 +192,18 @@ class Dominoes(Game):
 
         # Player has to pass
         if i == 0:
-            self.n_pass += 1
             self.turn += 1
             self.turn %= self.n_players
-            self.turn_state.append(None)
-
-            # Check closed game
-            if self.n_pass >= self.n_players:
-                scores = self.scores
-                diff = scores[0] - scores[1]
-
-                if diff > 0: self.winner = 0
-                elif diff < 0: self.winner = 1
-
+            self.turn_state.append(0)
             return
         
         # If move is available, game is still open
-        self.n_pass = 0
         self.turn_state.append(i)
 
         tile = ALL_DOMINOES[abs(i) - 1]
         self.tiles[self.turn].discard(tile)
+        self.occurences[tile[0]] += 1
+        self.occurences[tile[1]] += 1
         
         if i < 0:
             # Sort tile so that it matches with its right neighbor
@@ -146,6 +231,15 @@ class Dominoes(Game):
         if len(self.tiles[self.turn]) == 0:
             self.winner = int((self.turn % 2))
 
+        if self.is_closed_game():
+            scores = self.scores
+            diff = scores[0] - scores[1]
+
+            if diff > 0:
+                self.winner = 0
+            elif diff < 0:
+                self.winner = 1
+
         # Update turn
         self.turn += 1
         self.turn %= self.n_players
@@ -158,8 +252,7 @@ class Dominoes(Game):
         i = self.turn_state.pop()
         
         # If last move was a pass
-        if i is None:
-            self.n_pass = max(0, self.n_pass - 1)
+        if i == 0:
             return
         
         # Retrieve last placed tile
@@ -172,6 +265,8 @@ class Dominoes(Game):
         # Return tile to standard representation
         tile = tuple(sorted(oriented_tile))
         self.tiles[self.turn].add(tile)
+        self.occurences[tile[0]] -= 1
+        self.occurences[tile[1]] -= 1
 
     def display_board(self):
         print('\n', '-'*50, '\n', list(self.board))
@@ -202,26 +297,15 @@ class DominoesPlayer(Player):
         assert move.lstrip('-').isdigit(), 'Only digits are allowed'
         return int(move)
     
-    
+
 class DominoesAI(Player):
-    def __init__(
-        self, 
-        name, 
-        alpha_beta=True,
-        verbose=False, 
-        max_depth=10
-    ):
+    def __init__(self, name, verbose=False, max_depth=10):
         super().__init__(name)
-        self.verbose = verbose
-        self.max_depth = max_depth
-        self.alpha_beta = alpha_beta
+        self.solver = Solver(
+            verbose=verbose, 
+            max_depth=max_depth
+        )
 
     def __call__(self, game: Dominoes) -> int:
         game.display_legal_moves()
-
-        return get_best_move(
-            game, 
-            ab=self.alpha_beta,
-            verbose=self.verbose,
-            max_depth=self.max_depth
-        )
+        return self.solver.get_best_move(game)

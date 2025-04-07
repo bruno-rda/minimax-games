@@ -1,13 +1,15 @@
 from typing import Literal
-from game import Game, Player, get_best_move
+from game import Game, Player, Solver
 
 class TicTacToe(Game):
     def __init__(self):
-        super().__init__()
+        super().__init__(
+            symbols=['❌', '⭕️'],
+            max_score=9-5
+        )
         self.player = set()
         self.opponent = set()
         self.turn_state = []
-        self.symbols = ['❌', '⭕️']
 
     @staticmethod
     def winning_move(moves, last_move):
@@ -31,14 +33,36 @@ class TicTacToe(Game):
     
     def compute_final_score(self) -> float:
         if self.winner is not None:
-            mult = -1 if not (self.turn % 2) else 1
-            depth = 10 - len(self.turn_state)
-        
-            return mult * depth
-
-        # Board filled without a win or max depth reached
+            mult = 1 if self.winner == self.turn else -1
+            return mult * (10 - len(self.turn_state))
         return 0
 
+    def get_upper_bound(self) -> float:
+        return (10 - len(self.turn_state))
+
+    def evaluate_immediate_win(self) -> float | None:
+        moves = self.player if not (self.turn % 2) else self.opponent
+
+        for choice in self.legal_moves():
+            if self.winning_move(moves | {choice}, choice):
+                return self.get_upper_bound() - 1
+        
+        return None
+    
+    def evaluate_forced_loss(self) -> bool:
+        moves = self.player if (self.turn % 2) else self.opponent
+        winning_chance = 0
+
+        for choice in self.legal_moves():
+            if self.winning_move(moves | {choice}, choice): 
+                winning_chance += 1
+            
+            # If opponent has at least 2 winning moves, player cannot prevent loss
+            if winning_chance == 2: 
+                return self.get_lower_bound() + 2
+        
+        return None
+    
     def legal_moves(self) -> set:
         return {0, 1, 2, 3, 4, 5, 6, 7, 8} - (self.player | self.opponent)
 
@@ -102,7 +126,7 @@ class TicTacToePlayer(Player):
 class TicTacToeAI(Player):
     def __init__(self, name, verbose=False):
         super().__init__(name)
-        self.verbose = verbose
+        self.solver = Solver(verbose=verbose)
 
     def __call__(self, game: TicTacToe) -> int:
-        return get_best_move(game, verbose=self.verbose)
+        return self.solver.get_best_move(game)

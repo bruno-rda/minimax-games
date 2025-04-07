@@ -1,14 +1,17 @@
-from game import Game, Player, get_best_move
+from game import Game, Player, Solver
 from typing import Literal
 
 class Connect4(Game):
     def __init__(self):
-        super().__init__()
+        super().__init__(
+            symbols=['🟡', '🔴'],
+            max_score=42-7
+        )
+
         self.player = set()
         self.opponent = set()
         self.occurences = [0]*7
         self.turn_state = []
-        self.symbols = ['🟡', '🔴']
 
     @staticmethod
     def winning_move(moves: set, last_move: int) -> bool:
@@ -70,14 +73,41 @@ class Connect4(Game):
     
     def compute_final_score(self) -> float:
         if self.winner is not None:
-            mult = -1 if not (self.turn % 2) else 1
-            depth = 43 - len(self.turn_state)
-        
-            return mult * depth
-
-        # Board filled without a win or max depth reached
+            mult = 1 if self.winner == self.turn else -1
+            return mult * (43 - len(self.turn_state))
         return 0
+        
+    def get_upper_bound(self) -> float:
+        return (43 - len(self.turn_state))
 
+    def evaluate_immediate_win(self) -> float | None:
+        moves = self.player if not (self.turn % 2) else self.opponent
+
+        for choice in self.legal_moves():
+            move = choice + (self.occurences[choice]) * 7
+            
+            # If next move wins, return score
+            if self.winning_move(moves | {move}, move): 
+                return self.get_upper_bound() - 1
+        
+        return None
+    
+    def evaluate_forced_loss(self):
+        moves = self.player if (self.turn % 2) else self.opponent
+        winning_chance = 0
+
+        for choice in self.legal_moves():
+            move = choice + (self.occurences[choice]) * 7
+            
+            if self.winning_move(moves | {move}, move): 
+                winning_chance += 1 
+            
+            # If opponent has at least 2 winning moves, player cannot prevent loss
+            if winning_chance == 2: 
+                return self.get_lower_bound() + 2
+        
+        return None
+    
     def legal_moves(self) -> list:
         return [i for i in [3, 4, 2, 5, 1, 6, 0] if self.occurences[i] < 6]
 
@@ -145,25 +175,15 @@ class Connect4Player(Player):
         move = input('Select a column [0-6]: ')
         assert move.isdigit(), 'Only digits are allowed'
         return int(move)
-    
+
 
 class Connect4AI(Player):
-    def __init__(
-        self, 
-        name, 
-        alpha_beta=False,
-        verbose=False, 
-        max_depth=10
-    ):
+    def __init__(self, name, verbose=False, max_depth=10):
         super().__init__(name)
-        self.verbose = verbose
-        self.max_depth = max_depth
-        self.alpha_beta = alpha_beta
+        self.solver = Solver(
+            verbose=verbose, 
+            max_depth=max_depth
+        )
 
     def __call__(self, game: Connect4) -> int:
-        return get_best_move(
-            game, 
-            ab=self.alpha_beta,
-            verbose=self.verbose, 
-            max_depth=self.max_depth
-        )
+        return self.solver.get_best_move(game)

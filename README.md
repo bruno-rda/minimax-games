@@ -15,6 +15,7 @@ El proyecto está organizado en varias carpetas y archivos:
 - **game/minimax.py**: Implementa el algoritmo minimax, que se utiliza para calcular el mejor movimiento posible en los juegos.
 - **game/board_games/**: Contiene las implementaciones específicas de cada juego, como Tic Tac Toe, Conecta 4 y Dominó.
 - **game_notebook.ipynb**: Un notebook de Jupyter que contiene ejemplos de cómo crear y jugar los diferentes juegos implementados, así como demostraciones del uso del algoritmo minimax.
+- **benchmarks.ipynb**: Un notebook de Jupyter que contiene ejemplos de cómo ejecutar el algoritmo minimax con diferentes juegos y configuraciones.
 
 ## Funcionalidades
 
@@ -34,14 +35,7 @@ El proyecto está organizado en varias carpetas y archivos:
 
 ### Algoritmo Minimax
 
-El algoritmo minimax se utiliza para calcular el mejor movimiento posible dado un estado del juego. Este algoritmo evalúa todos los posibles movimientos y sus resultados, eligiendo el movimiento que maximiza la probabilidad de ganar.
-Se realizaron dos implementaciones del algoritmo minimax:
-- Una implementación con cache:
-  - Esta implementación guarda los resultados de las evaluaciones de los nodos en una cache para evitar recalcularlos.
-  - Es muy útil para juegos donde el espacio de estados es recurrente, es decir, el mismo estado puede aparecer más de una vez durante el juego.
-- Una implementación con poda alfa-beta:
-  - Esta implementación es una optimización del algoritmo minimax que reduce el número de nodos evaluados.
-  - Básicamente, la poda alfa-beta consiste en eliminar los nodos que no son necesarios evaluar. Es altamente eficiente para juegos con espacios de estados grandes y profundos, que no cuentan con estados recurrentes.
+El algoritmo minimax se utiliza para calcular el mejor movimiento posible dado un estado del juego. Este algoritmo evalúa todos los posibles movimientos y sus resultados, eligiendo el movimiento que maximiza la probabilidad de ganar. El algoritmo se implementó con poda alfa-beta y cuenta con una caché para almacenar los limites superiores e inferiores de los nodos evaluados, lo que permite una optimización de la búsqueda.
 
 ### Interfaz de Usuario
 
@@ -62,8 +56,8 @@ Para ejecutar el proyecto, asegúrate de tener Python instalado en tu sistema. S
    from game.board_games import TicTacToe, TicTacToePlayer, TicTacToeAI
 
    game = TicTacToe()
-   player = TicTacToePlayer('Jugador 1')
-   ai = TicTacToeAI('IA')
+   player = TicTacToePlayer()
+   ai = TicTacToeAI('AI')
    game.play(player, ai)
    ```
    Puedes adaptar este ejemplo para jugar otros juegos implementados.
