@@ -1,4 +1,4 @@
-# README
+# Minimax Games
 
 ## Introducción
 
