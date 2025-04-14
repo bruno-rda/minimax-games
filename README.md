@@ -1,57 +1,58 @@
 # Minimax Games
 
-## Introducción
+## Introduction
 
-Este repositorio contiene una implementación de varios juegos de mesa clásicos, incluyendo Gato (Tic Tac Toe), Conecta 4 y Dominó. La estructura del código está diseñada para ser modular y extensible, permitiendo la adición de nuevos juegos y funcionalidades de manera sencilla. Utiliza un enfoque orientado a objetos para representar los juegos y los jugadores, y se implementa un algoritmo minimax para la toma de decisiones en los juegos.
+This repository contains an implementation of several classic board games, including Tic Tac Toe, Connect 4 and Classic Dominoes. The code structure is designed to be modular and extensible, allowing new games and functionality to be added easily. It uses an object-oriented approach to represent games and players, and a minimax algorithm is implemented for decision-making in the games.
 
-Además de la implementación en módulos Python, se incluye un notebook de Jupyter (`game_notebook.ipynb`) que proporciona ejemplos prácticos y demostraciones de cómo utilizar las diferentes clases y funcionalidades del proyecto.
+In addition to the implementation in Python modules, a Jupyter notebook (`game_notebook.ipynb`) is included that provides practical examples and demonstrations of how to use the different classes and functionalities of the project.
 
-## Estructura del Proyecto
+## Project Structure
 
-El proyecto está organizado en varias carpetas y archivos:
+The project is organized in several folders and files:
 
-- **game/game.py**: Define la clase `Game`, que representa un juego de mesa, considerando tablero, turnos, y lógica de juego.
-- **game/player.py**: Define la clase `Player`, que representa a los jugadores en los juegos.
-- **game/minimax.py**: Implementa el algoritmo minimax, que se utiliza para calcular el mejor movimiento posible en los juegos.
-- **game/board_games/**: Contiene las implementaciones específicas de cada juego, como Tic Tac Toe, Conecta 4 y Dominó.
-- **game_notebook.ipynb**: Un notebook de Jupyter que contiene ejemplos de cómo crear y jugar los diferentes juegos implementados, así como demostraciones del uso del algoritmo minimax.
-- **benchmarks.ipynb**: Un notebook de Jupyter que contiene ejemplos de cómo ejecutar el algoritmo minimax con diferentes juegos y configuraciones.
+- **game/game.py**: Defines the `Game` class, which represents a board game, considering board, turns, and game logic.
+- **game/player.py**: Defines the `Player` class, which represents the players in the games.
+- **game/minimax.py**: Implements the minimax algorithm, which is used to calculate the best possible move in games.
+- **game/board_games/**: Contains game-specific implementations, such as Tic Tac Toe, Connect 4 and Dominoes.
+- **game_notebook.ipynb**: A Jupyter notebook containing examples of how to create and play the different games implemented, as well as demonstrations of the use of the minimax algorithm.
+- **benchmarks.ipynb**: A Jupyter notebook containing examples of how to run the minimax algorithm with different games and configurations.
 
-## Funcionalidades
 
-### Juegos Implementados
+## Features
+
+### Implemented Games
 
 1. **Tic Tac Toe**:
-   - Dos jugadores se turnan para colocar sus símbolos en un tablero de 3x3.
-   - El primer jugador en alinear tres de sus símbolos en línea, columna o diagonal gana.
+   - Two players take turns placing their symbols on a 3x3 board.
+   - The first player to align three of their symbols in a row, column or diagonal wins.
 
-2. **Conecta 4**:
-   - Dos jugadores se turnan para dejar caer fichas en una cuadrícula de 7 columnas y 6 filas.
-   - El objetivo es alinear cuatro fichas en línea, ya sea horizontal, vertical o diagonalmente.
+2. **Connect 4**:
+   - Two players take turns dropping their pieces into a 7x6 grid.
+   - The objective is to align four pieces in a row, either horizontally, vertically or diagonally.
 
-3. **Dominó**:
-   - Los jugadores colocan fichas en un tablero, tratando de coincidir los números en los extremos de las fichas.
-   - El juego puede jugarse en modo individual o en equipos.
+3. **Classic Dominoes**:
+   - Players place tiles on a board, trying to match the numbers on the ends of the tiles.
+   - The game can be played in single player or team mode.
 
-### Algoritmo Minimax
+### Minimax Algorithm
 
-El algoritmo minimax se utiliza para calcular el mejor movimiento posible dado un estado del juego. Este algoritmo evalúa todos los posibles movimientos y sus resultados, eligiendo el movimiento que maximiza la probabilidad de ganar. El algoritmo se implementó con poda alfa-beta y cuenta con una caché para almacenar los limites superiores e inferiores de los nodos evaluados, lo que permite una optimización de la búsqueda.
+The minimax algorithm is used to calculate the best possible move given a game state. This algorithm evaluates all possible moves and their outcomes, choosing the move that maximizes the probability of winning. The algorithm was implemented with alpha-beta pruning and has a cache to store the upper and lower bounds of the evaluated nodes, which optimizes the search process.
 
-### Interfaz de Usuario
+### User Interface
 
-El juego se puede jugar a través de la consola, donde los jugadores pueden ingresar sus movimientos. La IA también puede ser utilizada como oponente, proporcionando una experiencia de juego desafiante.
+The game can be played through the console, where players can enter their moves. The AI can also be used as an opponent, providing a challenging gaming experience.
 
-## Cómo Ejecutar el Proyecto
+## How to Run the Project
 
-Para ejecutar el proyecto, asegúrate de tener Python instalado en tu sistema. Si deseas explorar los ejemplos interactivos, también necesitarás tener Jupyter Notebook instalado. Luego, sigue estos pasos:
+To run the project, ensure you have Python installed on your system. If you want to explore the interactive examples, you will also need to have Jupyter Notebook installed. Then, follow these steps:
 
-1. **Clona el repositorio:**
+1. **Clone the repository:**
    ```bash
-   gh repo clone bruno-rda/minimax-games
+   git clone https://github.com/bruno-rda/minimax-games.git
    cd minimax-games
    ```
 
-2. **Para ejecutar los juegos directamente desde la consola:**
+2. **To run the games directly from the console:**
    ```python
    from game.board_games import TicTacToe, TicTacToePlayer, TicTacToeAI
 
@@ -60,10 +61,10 @@ Para ejecutar el proyecto, asegúrate de tener Python instalado en tu sistema. S
    ai = TicTacToeAI('AI')
    game.play(player, ai)
    ```
-   Puedes adaptar este ejemplo para jugar otros juegos implementados.
+   You can adapt this example to play other implemented games.
 
-3. **Para explorar los ejemplos en el notebook:**
+3. **To explore the examples in the notebook:**
    ```bash
    jupyter notebook game_notebook.ipynb
    ```
-   Esto abrirá el notebook en tu navegador, donde podrás ejecutar las celdas de código y ver ejemplos de cómo utilizar las diferentes clases y funcionalidades del proyecto, incluyendo la creación de juegos y el uso de jugadores humanos y la IA basada en el algoritmo minimax.
+   This will open the notebook in your browser, where you can run the code cells and see examples of how to use the different classes and features of the project, including the creation of games and the use of human players and AI based on the minimax algorithm.
