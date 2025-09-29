@@ -3,11 +3,12 @@
 
 import math
 from time import time
-from game.game import Game
+from games.base import Game
 
 class Solver:
     def __init__(self, verbose=False, max_depth=math.inf):
-        self.cache = dict()
+        self.alphas = dict()
+        self.betas = dict()
         self.hit = 0
         self.node_count = 0
         self.verbose = verbose
@@ -47,13 +48,13 @@ class Solver:
         
         # Retrieve cached bounds if possible
         key = game.get_key()
-        if key is not None and key in self.cache:
-            if self.cache[key] > game.max_score * 8:
+        if key is not None:
+            if key in self.alphas:
                 self.hit += 1
-                lower_bound = self.cache[key] - game.max_score * 10
-            else:
+                upper_bound = self.alphas[key]
+            if key in self.betas:
                 self.hit += 1
-                upper_bound = self.cache[key]
+                lower_bound = self.betas[key]
         
         # Adjust beta based on upper bound
         if beta > upper_bound:
@@ -65,7 +66,7 @@ class Solver:
 
         # Prune exploration if [alpha, beta] window is empty
         if alpha >= beta:
-            return beta #+ 0.001
+            return beta
         
         for move in game.legal_moves():
             game.play_move(move)
@@ -75,7 +76,7 @@ class Solver:
             # Prune exploration if score is greater than beta   
             if score >= beta:
                 if key is not None:
-                    self.cache[key] = score + game.max_score * 10
+                    self.betas[key] = score
                 return score
 
             # Reduce window for next exploration
@@ -84,7 +85,7 @@ class Solver:
 
         # Cache the upper bound
         if key is not None:
-            self.cache[key] = alpha
+            self.alphas[key] = alpha
 
         return alpha
     

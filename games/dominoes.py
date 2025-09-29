@@ -1,6 +1,6 @@
 import random
 from collections import deque
-from game import Game, Player, Solver
+from .base import Game
 
 ALL_DOMINOES = [
     (i, j)
@@ -280,32 +280,3 @@ class Dominoes(Game):
             print(f'{i}: {label}')
         
         print()
-    
-    
-class DominoesPlayer(Player):
-    n_instances = 0
-    def __init__(self, name=None):
-        DominoesPlayer.n_instances += 1
-
-        super().__init__(
-            name or f'Player {DominoesPlayer.n_instances}'
-        )
-
-    def __call__(self, game: Dominoes) -> int:
-        game.display_legal_moves()
-        move = input('Select a tile [1-28]: ')
-        assert move.lstrip('-').isdigit(), 'Only digits are allowed'
-        return int(move)
-    
-
-class DominoesAI(Player):
-    def __init__(self, name, verbose=False, max_depth=10):
-        super().__init__(name)
-        self.solver = Solver(
-            verbose=verbose, 
-            max_depth=max_depth
-        )
-
-    def __call__(self, game: Dominoes) -> int:
-        game.display_legal_moves()
-        return self.solver.get_best_move(game)

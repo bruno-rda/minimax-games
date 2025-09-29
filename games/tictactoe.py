@@ -1,5 +1,5 @@
 from typing import Literal
-from game import Game, Player, Solver
+from .base import Game
 
 class TicTacToe(Game):
     def __init__(self):
@@ -106,27 +106,3 @@ class TicTacToe(Game):
         for row in range(0, 3):
             print('|\t' + '\t|\t'.join(board[col][row] for col in range(3)) + '\t|')
             print('-' * 49)
-
-
-class TicTacToePlayer(Player):
-    n_instances = 0
-    def __init__(self, name=None):
-        TicTacToePlayer.n_instances += 1
-
-        super().__init__(
-            name or f'Player {TicTacToePlayer.n_instances}'
-        )
-
-    def __call__(self, game: TicTacToe) -> int:
-        move = input('Select box [0-8]: ')
-        assert move.isdigit(), 'Only digits are allowed'
-        return int(move)
-
-
-class TicTacToeAI(Player):
-    def __init__(self, name, verbose=False):
-        super().__init__(name)
-        self.solver = Solver(verbose=verbose)
-
-    def __call__(self, game: TicTacToe) -> int:
-        return self.solver.get_best_move(game)

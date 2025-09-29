@@ -1,4 +1,4 @@
-from game import Game, Player, Solver
+from .base import Game
 from typing import Literal
 
 class Connect4(Game):
@@ -160,30 +160,3 @@ class Connect4(Game):
             print('-' * 36)
 
         print('| ' + '  | '.join(str(col) for col in range(7)) + '  |')
-    
-
-class Connect4Player(Player):
-    n_instances = 0
-    def __init__(self, name=None):
-        Connect4Player.n_instances += 1
-
-        super().__init__(
-            name or f'Player {Connect4Player.n_instances}'
-        )
-
-    def __call__(self, game: Connect4) -> int:
-        move = input('Select a column [0-6]: ')
-        assert move.isdigit(), 'Only digits are allowed'
-        return int(move)
-
-
-class Connect4AI(Player):
-    def __init__(self, name, verbose=False, max_depth=10):
-        super().__init__(name)
-        self.solver = Solver(
-            verbose=verbose, 
-            max_depth=max_depth
-        )
-
-    def __call__(self, game: Connect4) -> int:
-        return self.solver.get_best_move(game)

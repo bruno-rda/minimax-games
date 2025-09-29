@@ -1,6 +1,8 @@
+from games.base import Game
+
 class Player:
     def __init__(self, name: str):
         self.name = name
 
-    def __call__(self, game):
+    def choose_move(self, game: Game) -> int:
         raise NotImplementedError

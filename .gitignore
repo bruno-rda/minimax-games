@@ -30,3 +30,5 @@ var/
 *.swp
 *.swo
 *.VSCodeCounter/
+
+.DS_Store
